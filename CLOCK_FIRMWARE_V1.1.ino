@@ -50,7 +50,7 @@ const char HTML2[] PROGMEM = {"<!doctype html><html><head><meta name=\"apple-mob
 struct tm timeinfo;                               //Timeinfo will hold all current time data
 String NTPstring = "time.google.com";             //Webaddress for timeserver
 String NTPstringbackup;                           //backup string for when NTP server is reset
-float gmtOffset_hour = 0;                         //Greenwich Mean Time offset (in hours)
+float gmtOffset_hour = 1;                         //Greenwich Mean Time offset (in hours)
 float daylightOffset_hour = 0;                    //Daylight Saving Time offset (in seconds)
 //-------------------------------------------------------------------------------
 const uint16_t PixelCount = 180;                   //Number of pixels/LEDS in the clock
@@ -82,7 +82,7 @@ int minCalc = 0;                                  //0-59 global minutes data get
 int hourCalc = 0;                                 //0-59 global hour data gets updated every second (to show intermediate hour position)
 int hourDirectCalc = 0;                           //0-23 global hour data gets updated every second
 
-bool WLANOn = false;                              //Are WIFI preferences stored or not?
+bool WLANOn = true;                              //Are WIFI preferences stored or not?
 String SSIDstring;                                //SSID string of network the clock will try to connect with. Max. length 32 char
 String passwordstring;                            //password string of network the clock will try to connect with. Max. length 63 char
 String deviceName;                                //name of the device (can be changed by user). Max. length 16 char
@@ -193,13 +193,13 @@ void codeForLEDtask( void * parameter){
     switch (state) {
       //First start-up
       case 0:
-        for (int i=0; i <= 59; i++){
+        for (int i=0; i <= 179; i++){
           strip.SetPixelColor(i, RgbColor (0,0,255));
           strip.Show();
           delay(16);
           if( state != 0){break;}
         }
-        for (int i=0; i <= 59; i++){
+        for (int i=0; i <= 179; i++){
           strip.SetPixelColor(i, RgbColor (0,0,0));
           strip.Show();
           delay(16);
@@ -208,13 +208,13 @@ void codeForLEDtask( void * parameter){
         break;
       //Unconnected
       case 1:
-        for (int i=0; i <= 59; i++){
+        for (int i=0; i <= 179; i++){
           strip.SetPixelColor(i, RgbColor (0,255,0));
           strip.Show();
           delay(16);
           if( state != 1){break;}
         }
-        for (int i=0; i <= 59; i++){
+        for (int i=0; i <= 179; i++){
           strip.SetPixelColor(i, RgbColor (0,0,0));
           strip.Show();
           delay(16);
@@ -691,7 +691,7 @@ bool ValidateAlarm(AsyncWebServerRequest *request){
     
     p = request->getParam(2);
     validationString = p->value();
-    if ((validationString.toInt() >= 0) && (validationString.toInt() <= 59)){
+    if ((validationString.toInt() >= 0) && (validationString.toInt() <= 179)){
       minAlarm = validationString.toInt();
     }
     else{
@@ -1707,9 +1707,9 @@ RgbColor AddColors(RgbColor color1, RgbColor color2){
 //-------------------------------------------------------------------------------
 void ProcessTime(void ){
 
-  hourCalc = HourCalc();
-  minCalc = timeinfo.tm_min;
-  secCalc = timeinfo.tm_sec;
+  hourCalc = HourCalc() * 3;
+  minCalc = timeinfo.tm_min * 3;
+  secCalc = timeinfo.tm_sec * 3;
   
 }
 //-------------------------------------------------------------------------------
@@ -1795,7 +1795,7 @@ void HourHand2(const AnimationParam& param){
     animationArray5[i] = RgbColor (0,0,0);
   }
 
-  float fade = (float)minCalc / 59.0;
+  float fade = (float)minCalc / 179.0;
 
   animationArray5[hourCalc] = RgbColor::LinearBlend(hourHandColor, RgbColor(0,0,0), fade);
   animationArray5[circleArray[hourCalc+1]] = RgbColor::LinearBlend(RgbColor(0,0,0), hourHandColor, fade);
@@ -1824,7 +1824,7 @@ void HourHand3(const AnimationParam& param){
 //-------------------------------------------------------------------------------
  void HourHand4(const AnimationParam& param){
   float progress = animation4(param.progress);
-  float fade = (float)minCalc/59.0;
+  float fade = (float)minCalc/179.0;
 
   for (int j=0; j < (hourCalc); j++){
     if((animationArray5[j].R != hourHandColor.R)||(animationArray5[j].G != hourHandColor.G)||(animationArray5[j].B != hourHandColor.B)){
@@ -1864,7 +1864,7 @@ void HourHand5(const AnimationParam& param){
 //-------------------------------------------------------------------------------
 void HourHand6(const AnimationParam& param){
   float progress = animation4(param.progress);
-  float fade = (float)minCalc/59.0;
+  float fade = (float)minCalc/179.0;
  
   for (int j=(hourCalc); j < (PixelCount); j++){
     if((animationArray5[j].R != hourHandColor.R)||(animationArray5[j].G != hourHandColor.G)||(animationArray5[j].B != hourHandColor.B)){
@@ -1907,16 +1907,16 @@ void HourHand8(const AnimationParam& param){
   
   uint16_t nextPixel;
   
-  nextPixel = progress * 60;
+  nextPixel = progress * 180;
 
   nextPixel = nextPixel + hourCalc;
 
-  if(nextPixel > 60){
-    nextPixel = nextPixel - 60;
+  if(nextPixel > 180){
+    nextPixel = nextPixel - 180;
   }
 
-  if(nextPixel > 60){
-    nextPixel = 60;
+  if(nextPixel > 180){
+    nextPixel = 180;
   }
   
   animationArray5[circleArray[nextPixel]] = hourHandColor;
@@ -1990,7 +1990,7 @@ void MinuteHand2(const AnimationParam& param){
     animationArray4[i] = RgbColor (0,0,0);
   }
 
-  float fade = (float)secCalc / 59.0;
+  float fade = (float)secCalc / 179.0;
 
   animationArray4[minCalc] = RgbColor::LinearBlend(minuteHandColor, RgbColor(0,0,0), fade);
   animationArray4[circleArray[minCalc+1]] = RgbColor::LinearBlend(RgbColor(0,0,0), minuteHandColor, fade);
@@ -2019,7 +2019,7 @@ void MinuteHand3(const AnimationParam& param){
 //-------------------------------------------------------------------------------
 void MinuteHand4(const AnimationParam& param){
   float progress = animation4(param.progress);
-  float fade = (float)secCalc/59.0;
+  float fade = (float)secCalc/179.0;
 
   for (int j=0; j < (minCalc); j++){
     if((animationArray4[j].R != minuteHandColor.R)||(animationArray4[j].G != minuteHandColor.G)||(animationArray4[j].B != minuteHandColor.B)){
@@ -2032,7 +2032,7 @@ void MinuteHand4(const AnimationParam& param){
   
   animationArray4[minCalc] = RgbColor::LinearBlend(RgbColor(0,0,0), minuteHandColor, fade); 
 
-  for (int i= minCalc+1; i < (PixelCount); i++){
+  for (int i= minCalc+3; i < (PixelCount); i++){
     animationArray4[i] = RgbColor(0,0,0);
   }
   
@@ -2059,7 +2059,7 @@ void MinuteHand5(const AnimationParam& param){
 //-------------------------------------------------------------------------------
 void MinuteHand6(const AnimationParam& param){
   float progress = animation4(param.progress);
-  float fade = (float)secCalc/59.0;
+  float fade = (float)secCalc/179.0;
  
   for (int j=(minCalc); j < (PixelCount); j++){
     if((animationArray4[j].R != minuteHandColor.R)||(animationArray4[j].G != minuteHandColor.G)||(animationArray4[j].B != minuteHandColor.B)){
@@ -2102,16 +2102,16 @@ void MinuteHand8(const AnimationParam& param){
   
   uint16_t nextPixel;
   
-  nextPixel = progress * 60;
+  nextPixel = progress * 180;
 
   nextPixel = nextPixel + minCalc;
 
-  if(nextPixel > 60){
-    nextPixel = nextPixel - 60;
+  if(nextPixel > 180){
+    nextPixel = nextPixel - 180;
   }
 
-  if(nextPixel > 60){
-    nextPixel = 60;
+  if(nextPixel > 180){
+    nextPixel = 180;
   }
   
   animationArray4[circleArray[nextPixel]] = minuteHandColor;
@@ -2153,7 +2153,7 @@ void SecondHand2(const AnimationParam& param){
   }
    
   animationArray3[secCalc] = RgbColor::LinearBlend(secondHandColor, RgbColor(0,0,0), progress);
-  animationArray3[circleArray[secCalc+1]] = RgbColor::LinearBlend(RgbColor(0,0,0), secondHandColor, progress);
+  animationArray3[circleArray[secCalc+3]] = RgbColor::LinearBlend(RgbColor(0,0,0), secondHandColor, progress);
   
   if (param.state == AnimationState_Completed)
   {
@@ -2192,7 +2192,7 @@ void SecondHand4(const AnimationParam& param){
   
   animationArray3[secCalc] = RgbColor::LinearBlend(RgbColor(0,0,0), secondHandColor, progress); 
   
-  for (int i= secCalc+1; i < (PixelCount); i++){
+  for (int i= secCalc+3; i < (PixelCount); i++){
     animationArray3[i] = RgbColor(0,0,0);
   }
   
@@ -2265,16 +2265,16 @@ void SecondHand8(const AnimationParam& param){
   
   uint16_t nextPixel;
   
-  nextPixel = progress * 60;
+  nextPixel = progress * 180;
 
   nextPixel = nextPixel + secCalc;
 
-  if(nextPixel > 60){
-    nextPixel = nextPixel - 60;
+  if(nextPixel > 180){
+    nextPixel = nextPixel - 180;
   }
 
-  if(nextPixel > 60){
-    nextPixel = 60;
+  if(nextPixel > 180){
+    nextPixel = 180;
   }
   
   animationArray3[circleArray[nextPixel]] = secondHandColor;
@@ -2290,7 +2290,7 @@ void AllTails(const AnimationParam& param){
   if (param.state == AnimationState_Completed)
     {
       RgbColor color;
-        for (uint16_t indexPixel = 0; indexPixel <= 59; indexPixel++)
+        for (uint16_t indexPixel = 0; indexPixel <= 179; indexPixel++)
         {
             color = animationArray3[indexPixel];
             color.Darken(2);
@@ -2310,7 +2310,7 @@ void SecondHand0Tail(const AnimationParam& param){
   if (param.state == AnimationState_Completed)
     {
       RgbColor color;
-        for (uint16_t indexPixel = 0; indexPixel <= 59; indexPixel++)
+        for (uint16_t indexPixel = 0; indexPixel <= 179; indexPixel++)
         {
             color = animationArray3[circleArray[indexPixel]];
             
@@ -2375,12 +2375,12 @@ void Pendant(const AnimationParam& param){
   uint16_t nextPixel;
   
   if (pendantDir){
-    nextPixel = progress * 60;
+    nextPixel = progress * 180;
     
   }
   else{
-    nextPixel = progress * 60;
-    nextPixel = 60 - nextPixel;
+    nextPixel = progress * 180;
+    nextPixel = 180 - nextPixel;
   }
 
   animationArray1[circleArray[nextPixel]] = pendantColor;
@@ -2396,7 +2396,7 @@ void Pendanttail(const AnimationParam& param){
   if (param.state == AnimationState_Completed)
     {
       RgbColor color;
-        for (uint16_t indexPixel = 0; indexPixel <= 59; indexPixel++)
+        for (uint16_t indexPixel = 0; indexPixel <= 179; indexPixel++)
         {
             color = animationArray1[circleArray[indexPixel]];
             
