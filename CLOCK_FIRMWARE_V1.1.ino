@@ -82,7 +82,7 @@ int minCalc = 0;                                  //0-59 global minutes data get
 int hourCalc = 0;                                 //0-59 global hour data gets updated every second (to show intermediate hour position)
 int hourDirectCalc = 0;                           //0-23 global hour data gets updated every second
 
-bool WLANOn = true;                              //Are WIFI preferences stored or not?
+bool WLANOn = false;                              //Are WIFI preferences stored or not?
 String SSIDstring;                                //SSID string of network the clock will try to connect with. Max. length 32 char
 String passwordstring;                            //password string of network the clock will try to connect with. Max. length 63 char
 String deviceName;                                //name of the device (can be changed by user). Max. length 16 char
